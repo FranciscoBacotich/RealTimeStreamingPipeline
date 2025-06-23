@@ -19,11 +19,32 @@ Summary of architecture:
     All of this architecture running as a Docker Container.
 
 
-We define functions in a python script, where our dags in Airflow live, where we get the data, define how the response it is going to be parsed, and then sent into our Kafka-Zookeper enviroment. Thats why even though we started by getting the data from our source, I went ahead and created the Docker containers for our infrastructure.
+We define functions in a python script, where our dags in Airflow live, where we get the data, define how the response it is going to be parsed, and then sent into our Kafka-Zookeper enviroment.
+# Default parameters for tasks within a DAG
+default_args = {
+    'owner': 'airscholar',
+    'start_date': datetime(2025, 5, 7, 12, 00)
+}
 
-The configuration for the invoking of the componentes in the docker-compose file was fairly simple and normal. Nothing out of this world. 
+
+def get_data():
+    import requests                      #to get data from the api, and filter the result response accordingly
+
+    res = requests.get("https://randomuser.me/api/")  
+    res = res.json()                          #Setting this up now early on helps with being able to test it out with the stream_data() function
+                                                #Aca podemos hacer un test para ver como imprime la respuesta y que partes queremos
+    
+    res = res['results'][0]                   #Select part of the array we want and the index of the record number. Because the api requests comes with multiple fields sometimes and we want to make sure we are just getting the ones we want.
+    #print(res)                             
+    
+    return res
+## Thats why even though we started by getting the data from our source, I went ahead and created the Docker containers for our infrastructure.<br>
+The configuration for the invoking of the componentes in the docker-compose file was fairly simple and normal. Nothing out of this world. Basically I look for the component documentation, read through it, find some reference as a guide for the implementation, and write down the fields. 
+
+##When defining Docker Compose components (services) — such as a Kafka web server — the main points of interest revolve around service configuration, networking, volumes, and dependencies.
+
+
 Once those images are runnig, you can access the UI for control center ( check what hostname is placed at ) and visualize the broker or images that are up, basically you see the stream of data.
-
 When we see the control center, we see the consumptuion and other information. but we want to focus on the Topic tab. 
 
 ### What is a topic in Apache Kafka(ControlCenter)? 
