@@ -1,9 +1,9 @@
-👉 Setting up a data pipeline with Apache Airflow
-👉 Streaming data with Kafka and Kafka Connect
-👉 Using Zookeeper for distributed synchronization
-👉 Data processing with Apache Spark
-👉 Data storage solutions with Cassandra and PostgreSQL
-👉 Containerizing your data engineering environment with Docker
+👉 Setting up a data pipeline with Apache Airflow<br> 
+👉 Streaming data with Kafka and Kafka Connect<br> 
+👉 Using Zookeeper for distributed synchronization<br> 
+👉 Data processing with Apache Spark<br> 
+👉 Data storage solutions with Cassandra and PostgreSQL<br> 
+👉 Containerizing your data engineering environment with Docker<br> 
 
 Summary of architecture: 
 
