@@ -4,8 +4,6 @@ from airflow.operators.python import PythonOperator
 import uuid
 from airflow.decorators import dag, task
 
-
-# Default parameters for tasks within a DAG
 default_args = {
     'owner': 'airscholar',
     'start_date': datetime(2025, 5, 7, 12, 00)
@@ -13,19 +11,17 @@ default_args = {
 
 
 def get_data():
-    import requests                      #to get data from the api, and filter the result response accordingly
+    import requests                      
 
     res = requests.get("https://randomuser.me/api/")  
-    res = res.json()                          #Setting this up now early on helps with being able to test it out with the stream_data() function
-    #Aca podemos hacer un test para ver como imprime la respuesta y que partes queremos
+    res = res.json()                          
     
-    res = res['results'][0]                   #Select part of the array we want and the index of the record number. Because the api requests comes with multiple fields sometimes and we want to make sure we are just getting the ones we want.
-    #print(res)                               #Format of the response can be improved, next line
+    res = res['results'][0]                   
     
     return res
 
 
-#Function to define the response format. We take all the info from the response that we want to build up our data for to stream. Takes out redundancies
+#Function to define the response format. (1) 
 def format_data(res):
     data = {}
     location = res['location']
@@ -47,7 +43,7 @@ def format_data(res):
 
 
 def stream_data():
-    import json                         #good for formating the response
+    import json                         
     from kafka import KafkaProducer
     import time
     import logging
@@ -55,8 +51,8 @@ def stream_data():
     logging.basicConfig(level=logging.INFO)
 
     try:
-        producer = KafkaProducer(bootstrap_servers=['broker:29092'], max_block_ms=5000)       #First we use as adress the local host, but when we are inside the docker container we have to use the adress for the docker container.
-    except Exception as e:                                                                                        #Then we change it to broker:29092 which is the internal ip adress. That i dont know where to find it. Check README FILe.
+        producer = KafkaProducer(bootstrap_servers=['broker:29092'], max_block_ms=5000)       #(2)
+    except Exception as e:                                                                    #(3)
         logging.error(f'Could not connect to Kafka: {e}')
         return
     
@@ -68,17 +64,13 @@ def stream_data():
         try:
             res = get_data()
             res= format_data(res)
-            logging.info(f"Sending: {res}")
-            #Publish and push data to the queu. To test, run the pipeline script, because when the containers are up, now you need to feed data to see if there is a flow. Think of it as if you are literally building a pipeline, you dont wait until you are done with the hole thing to pour some water in it and see where the water is going to. You do it several times as you go.
+            logging.info(f"Sending: {res}") #(4)       
             producer.send('users_created', json.dumps(res).encode('utf-8'))
         except Exception as e:
             logging.error(f'An error ocurred: {e}')
-            continue #log the error and continue
-        
-         #Read the logs to check if it was able to build up the connection. Remember that the local host we have runnig is the adress for our docker image component.
-
-# #For dags, we define the invoking arguments and then what happens when the dag is running, in this case we start by callinmg the python operator function to create a python operator when the DAG runs
-# The @task decorator is recommended over the classic PythonOperator to execute Python callables.
+            continue # Log the error and continue
+                     # (4)
+# (5)
 with DAG('user_automation',
         default_args = default_args,
         schedule_interval = '@daily',
@@ -86,7 +78,7 @@ with DAG('user_automation',
     print("DAG loaded successfully")
     #As we need the stream data function, we need to create it before.
     streaming_task = PythonOperator(
-        task_id = 'stream_data_from_api',                 #We give an id to the pythonop. We also define what is getting called when we call the operator.
+        task_id = 'stream_data_from_api',                 #(6)
         python_callable = stream_data
     )
 
