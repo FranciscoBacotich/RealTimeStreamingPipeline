@@ -155,5 +155,3 @@ docker exec -it cassandra cqlsh
 
 No, pero si.
 
-# Security Checklist:
-
