@@ -27,8 +27,8 @@ default_args = {
 }
 
 
-def get_data():
-    import requests                      #to get data from the api, and filter the result response accordingly
+    def get_data():
+        import requests                      #to get data from the api, and filter the result response accordingly
 
     res = requests.get("https://randomuser.me/api/")  
     res = res.json()                          #Setting this up now early on helps with being able to test it out with the stream_data() function
@@ -42,15 +42,83 @@ def get_data():
 The configuration for the invoking of the componentes in the docker-compose file was fairly simple and normal. Nothing out of this world. Basically I look for the component documentation, read through it, find some reference as a guide for the implementation, and write down the fields. 
 
 ##When defining Docker Compose components (services) — such as a Kafka web server — the main points of interest revolve around service configuration, networking, volumes, and dependencies.
+    
+    zookeeper:
+          image: confluentinc/cp-zookeeper:7.4.0
+          hostname: zookeeper
+          container_name: zookeeper
+          ports:
+            - "2181:2181"
+          environment:
+            ZOOKEEPER_CLIENT_PORT: 2181
+            ZOOKEEPER_TICK_TIME: 2000
+          healthcheck:
+            test: ['CMD', 'bash', '-c', "echo 'ruok' | nc localhost 2181"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+          networks:
+            - confluent
 
 
 Once those images are runnig, you can access the UI for control center ( check what hostname is placed at ) and visualize the broker or images that are up, basically you see the stream of data.
 When we see the control center, we see the consumptuion and other information. but we want to focus on the Topic tab. 
 
+    docker-compose -d up
+    docker-compose -d down
+
+🧠 Bug ¿Qué pasó?
+Docker Desktop en Windows tiene que estar instalado, corriendo y con la integración WSL2 activada para que puedas usar docker desde tu terminal Ubuntu.
+
+✅ PASO A PASO PARA SOLUCIONARLO
+1. 🟢 Asegurate de que Docker Desktop esté instalado y abierto
+Abrí Docker Desktop desde el menú de Windows.
+
+
 ### What is a topic in Apache Kafka(ControlCenter)? 
 The fundamental unit for organizing and categorizing messages. It's essentially a named channel or feed where producers (applications that send messages) write data, and consumers (applications that read data) subscribe to receive it. Think of it like a specific category or subject for your messages. 
 
 In Apache Kafka, a topic is the fundamental unit for organizing and categorizing messages. It's essentially a named channel or feed where producers (applications that send messages) write data, and consumers (applications that read data) subscribe to receive it. Think of it like a specific category or subject for your messages. 
+
+
+🧠 Entonces… ¿Dónde está el topic?
+Un topic de Kafka:
+
+No es un archivo o configuración fija en el YAML del servicio broker.
+
+Se guarda internamente en los directorios de logs del contenedor broker, típicamente en /var/lib/kafka/data o similar.
+
+Pero para interactuar con ellos, se usa la CLI dentro del contenedor broker.
+
+🔍 ¿Cómo ver si el topic existe?
+Usá este comando en tu terminal para inspeccionar los topics existentes en el broker:
+
+bash
+docker exec -it broker kafka-topics --list --bootstrap-server broker:29092
+Si users_created aparece ahí, ¡existe!
+
+📌 ¿Y si querés crearlo?
+Si el topic no está y auto.create.topics.enable=true está deshabilitado (nota: no está configurado explícitamente en tu YAML, pero por defecto suele estar en true), podés crearlo así:
+
+bash
+docker exec -it broker kafka-topics --create \
+  --bootstrap-server broker:29092 \
+  --replication-factor 1 \
+  --partitions 1 \
+  --topic users_created
+📁 ¿Dónde se guarda físicamente?
+Dentro del contenedor Kafka (broker), los datos del topic se guardan en:
+
+kotlin
+/var/lib/kafka/data/
+Pero no necesitás tocar eso manualmente. Kafka maneja internamente esa estructura.
+
+✅ Resumen
+Qué querés saber	Respuesta técnica
+¿Dónde se define un topic?	Se crea automáticamente o con CLI dentro del contenedor Kafka
+¿Dónde están físicamente?	En /var/lib/kafka/data dentro del contenedor
+¿Cómo los veo?	kafka-topics --list --bootstrap-server broker:29092
+¿Cómo creo uno?	Usando el comando --create en el contenedor broker
 
 ## Here's a more detailed breakdown:
 #### Organization:
