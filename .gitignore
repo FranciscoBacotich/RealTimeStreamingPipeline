@@ -1,1 +1,38 @@
-venv
+# Python
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+venv/
+ENV/
+env/
+.venv/
+
+# Environment files
+.env
+.env.*
+
+# OS and IDE files
+.DS_Store
+.vscode/
+.idea/
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Docker volumes (if mapped locally)
+postgres-data/
+kafka-data/
+cassandra-data/
+spark-logs/
+
+# Airflow
+airflow.db
+airflow-webserver.pid
+airflow.cfg
+logs/
