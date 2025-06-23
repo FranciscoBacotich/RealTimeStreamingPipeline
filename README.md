@@ -87,7 +87,7 @@ docker-compose up -d
 
 Esperá que todos estén **healthy**.
 
-### 3. Crear el topic en Kafka (si no existe)
+### 3. Crear el topic en Kafka (si no existe). Lo cree en la funcion stream_data().
 
 ```bash
 docker exec -it broker kafka-topics --create \
